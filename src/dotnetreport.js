@@ -1883,23 +1883,32 @@ var reportViewModel = function (options) {
 				if (saveOnly) {
 					return;
 				}
-				redirectToReport(options.runReportUrl, {
-					reportId: _result.reportId,
-					reportName: self.ReportName(),
-					reportDescription: self.ReportDescription(),
-					includeSubTotal: self.IncludeSubTotal(),
-					showUniqueRecords: self.ShowUniqueRecords(),
-					aggregateReport: self.AggregateReport(),
-					showDataWithGraph: self.ShowDataWithGraph(),
-					reportSql: self.AllSqlQuries(),
-					connectKey: _result.connectKey,
-					reportFilter: JSON.stringify(_.map(self.FlyFilters(), function (x) { return ko.toJS(x); })),
-					reportType: self.ReportType(),
-					selectedFolder: self.SelectedFolder() != null ? self.SelectedFolder().Id : 0,
-					reportSeries: _.map(self.AdditionalSeries(), function (e, i) {
-						return e.Value();
-					})
-				});
+
+				if (options.samePageOnRun) {
+					options.reportWizard.modal('hide');
+					self.ReportID(_result.reportId);
+					self.ExecuteReportQuery(_result.sql, _result.connectKey);
+					self.ReportMode("execute");
+				}
+				else {
+					redirectToReport(options.runReportUrl, {
+						reportId: _result.reportId,
+						reportName: self.ReportName(),
+						reportDescription: self.ReportDescription(),
+						includeSubTotal: self.IncludeSubTotal(),
+						showUniqueRecords: self.ShowUniqueRecords(),
+						aggregateReport: self.AggregateReport(),
+						showDataWithGraph: self.ShowDataWithGraph(),
+						reportSql: self.AllSqlQuries(),
+						connectKey: _result.connectKey,
+						reportFilter: JSON.stringify(_.map(self.FlyFilters(), function (x) { return ko.toJS(x); })),
+						reportType: self.ReportType(),
+						selectedFolder: self.SelectedFolder() != null ? self.SelectedFolder().Id : 0,
+						reportSeries: _.map(self.AdditionalSeries(), function (e, i) {
+							return e.Value();
+						})
+					});
+				}
 			}
 		});
 	};

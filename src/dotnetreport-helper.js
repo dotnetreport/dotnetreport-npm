@@ -1,7 +1,4 @@
-var ko = require('knockout');
-var $ = require('jquery');
-
-/// .Net Report Builder helper methods
+// .Net Report Builder helper methods
 // Ajax call wrapper function
 function ajaxcall(options) {
 
@@ -11,6 +8,7 @@ function ajaxcall(options) {
     if ($.blockUI && !noBlocking) {
         $.blockUI({ baseZ: 500 });
     }
+    
 
     return $.ajax({
         url: options.url,
@@ -181,8 +179,4 @@ function htmlDecode(input) {
     var e = document.createElement('div');
     e.innerHTML = input;
     return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-}
-
-module.exports = {
-    ajaxcall, redirectToReport, htmlDecode
 }
