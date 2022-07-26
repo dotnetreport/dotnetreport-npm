@@ -13,7 +13,7 @@
     "ad hoc report builder",
     "report builder"
   ],
-  "author": "amar",
+  "author": "dotnetreport",
   "dependencies": {
     "jquery": "^3.4.1",
     "jquery-ui-dist": "1.12.1",
@@ -49,7 +49,7 @@
     "gulp-concat": "2.6.1",
     "gulp-htmlclean": "^2.7.22",
     "gulp-uglify": "^3.0.2",
-    "merge-stream": "^1.0.1",
+    "merge-stream": "^1.0.1"
   },
   "files": [
     "dotnetreport.min.js"
