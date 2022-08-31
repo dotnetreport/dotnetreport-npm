@@ -1,6 +1,6 @@
-/// dotnet Report Builder view model v4.2.6
+/// dotnet Report Builder view model v4.3.5
 /// License has to be purchased for use
-/// 2018-2021 (c) www.dotnetreport.com
+/// 2022 (c) www.dotnetreport.com
 function pagerViewModel(args) {
 	args = args || {};
 	var self = this;
@@ -115,6 +115,7 @@ function linkFieldViewModel(args, options) {
 				}
 			}).done(function (report) {
 				if (report.d) { report = report.d; }
+				if (report.result) { report = report.result; }
 				if (report.UseStoredProc) {
 					self.allFields(_.map(report.SelectedParameters, function (x) {
 						return {
@@ -223,6 +224,7 @@ function scheduleBuilder(userId) {
 	self.hasScheduleEnd = ko.observable(false);
 	self.scheduleStart = ko.observable();
 	self.scheduleEnd = ko.observable();
+	self.format = ko.observable('')
 
 	self.selectedOption.subscribe(function (newValue) {
 		self.selectedDays([]);
@@ -265,8 +267,8 @@ function scheduleBuilder(userId) {
 			EmailTo: self.emailTo(),
 			UserId: userId,
 			ScheduleStart: self.hasScheduleStart() ? self.scheduleStart() : '',
-			ScheduleEnd: self.hasScheduleEnd() ? self.scheduleEnd() : ''
-
+			ScheduleEnd: self.hasScheduleEnd() ? self.scheduleEnd() : '',
+			Format: self.format()
 		} : null;
 	};
 
@@ -288,7 +290,7 @@ function scheduleBuilder(userId) {
 		}
 		else if (data.SelectedDates == lastDay) {
 			self.selectedDates([data.SelectedDates]);
-		}else {
+		} else {
 			self.selectedDates(_.map(data.SelectedDates.split(','), function (x) { return parseInt(x); }));
 		}
 		self.selectedHour(data.SelectedHour || '12');
@@ -299,6 +301,7 @@ function scheduleBuilder(userId) {
 		self.scheduleEnd(data.ScheduleEnd ? new Date(data.ScheduleEnd.match(/\d+/)[0] * 1) : '');
 		self.hasScheduleStart(data.ScheduleStart ? true : false);
 		self.hasScheduleEnd(data.ScheduleEnd ? true : false);
+		self.format(data.Format);
 	}
 
 	self.clear = function () {
@@ -333,7 +336,7 @@ function filterGroupViewModel(args) {
 				return false;
 			}
 		});
-		
+
 		return found;
 	}
 
@@ -390,12 +393,14 @@ function filterGroupViewModel(args) {
 				}
 			}).done(function (result) {
 				if (result.d) { result = result.d; }
+				if (result.result) { result = result.result; }
 				ajaxcall({
 					type: 'POST',
 					url: args.options.lookupListUrl,
 					data: JSON.stringify({ lookupSql: result.sql, connectKey: result.connectKey })
 				}).done(function (list) {
 					if (list.d) { list = list.d; }
+					if (list.result) { list = list.result; }
 					lookupList(list);
 					if (valueIn.length > 0) {
 						filter.ValueIn(valueIn);
@@ -403,7 +408,7 @@ function filterGroupViewModel(args) {
 					}
 				});
 			});
-        }
+		}
 
 		var addingFilter = true;
 		field.subscribe(function (newField) {
@@ -432,12 +437,14 @@ function filterGroupViewModel(args) {
 							}
 						}).done(function (result) {
 							if (result.d) { result = result.d; }
+							if (result.result) { result = result.result; }
 							ajaxcall({
 								type: 'POST',
 								url: args.options.lookupListUrl,
 								data: JSON.stringify({ lookupSql: result.sql, connectKey: result.connectKey })
 							}).done(function (list) {
 								if (list.d) { list = list.d; }
+								if (list.result) { list = list.result; }
 								parentList(list);
 							});
 						});
@@ -454,13 +461,13 @@ function filterGroupViewModel(args) {
 						});
 
 						filter.ParentIn(existingParentFilter.Operator() == '=' ? (existingParentFilter.Value() ? [existingParentFilter.Value()] : []) : existingParentFilter.ValueIn())
-                    }
+					}
 
-                }
+				}
 
 				else
 					loadLookupList(newField.fieldId, args.options.dataFilters);
-				
+
 			}
 
 			if (newField && newField.restrictedDateRange && newField.fieldType == 'DateTime') {
@@ -470,7 +477,7 @@ function filterGroupViewModel(args) {
 						if (!self.isRangeValid(newValue, newField.restrictedDateRange)) {
 							toastr.error("Filter range is more than " + newField.restrictedDateRange + ". Please choose a shorter date range");
 							filter.Value(null);
-                        }
+						}
 					}
 					if (newValue && filter.Operator() == 'between') {
 						var newValue2 = filter.Value2();
@@ -478,7 +485,7 @@ function filterGroupViewModel(args) {
 							toastr.error("Filter range is more than " + newField.restrictedDateRange + ". Please choose a shorter date range");
 							filter.Value(null);
 						}
-                    }
+					}
 				});
 
 				filter.Value2.subscribe(function (newValue2) {
@@ -488,9 +495,9 @@ function filterGroupViewModel(args) {
 							toastr.error("Filter range is more than " + newField.restrictedDateRange + ". Please choose a shorter date range");
 							filter.Value2(null);
 						}
-                    }
+					}
 				});
-            }
+			}
 		});
 
 		if (e.FieldId) {
@@ -542,7 +549,7 @@ function filterGroupViewModel(args) {
 		}
 
 		return isValid;
-	}	
+	}
 
 	self.isBetweenValid = function (date1, date2, restrictedRange) {
 		var tokens = restrictedRange.split(' ');
@@ -556,10 +563,10 @@ function filterGroupViewModel(args) {
 			case "Days": isValid = diffDays < rangeNumber && diffDays > 0; break;
 			case "Months": isValid = diffDays < (rangeNumber * 30); break;
 			case "Years": isValid = diffDays < (rangeNumber * 365); break;
-        }
+		}
 
 		return isValid;
-    }
+	}
 
 	self.isDate = function (date) {
 		if (!date) return false;
@@ -692,6 +699,7 @@ var headerDesigner = function (options) {
 			})
 		}).done(function (result) {
 			if (result.d) { result = result.d; }
+			if (result.result) { result = result.result; }
 			toastr.success('Report Header changes saved')
 		});
 	}
@@ -706,6 +714,7 @@ var headerDesigner = function (options) {
 			}
 		}).done(function (result) {
 			if (result.d) { result = result.d; }
+			if (result.result) { result = result.result; }
 			self.UseReportHeader(result.useReportHeader);
 			canvas.loadFromJSON(result.headerJson, canvas.renderAll.bind(canvas), function (o, obj) {
 				if (displayOnly === true)
@@ -889,6 +898,13 @@ var reportViewModel = function (options) {
 	self.CanEdit = ko.observable(true);
 	self.useReportHeader = ko.observable(false);
 
+	self.SavedReports.subscribe(function (x) {
+		if (self.ReportID()) {
+			var match = _.find(x, { reportId: self.ReportID() }) || { canEdit: false };
+			self.CanEdit(match.canEdit || self.adminMode());
+		}
+	});
+
 	self.fieldFormatTypes = ['Auto', 'Number', 'Decimal', 'Currency', 'Percentage', 'Date', 'Date and Time', 'Time', 'String'];
 	self.decimalFormatTypes = ['Number', 'Decimal', 'Currency', 'Percentage'];
 	self.dateFormatTypes = ['Date', 'Date and Time', 'Time'];
@@ -1049,6 +1065,7 @@ var reportViewModel = function (options) {
 				}
 			}).done(function (result) {
 				if (result.d) { result = result.d; }
+				if (result.result) { result = result.result; }
 				if (self.ManageFolder.IsNew()) {
 					self.Folders.push({
 						Id: result,
@@ -1195,12 +1212,14 @@ var reportViewModel = function (options) {
 					}
 				}).done(function (result) {
 					if (result.d) { result = result.d; }
+					if (result.result) { result = result.result; }
 					ajaxcall({
 						type: 'POST',
 						url: options.lookupListUrl,
 						data: JSON.stringify({ lookupSql: result.sql, connectKey: result.connectKey })
 					}).done(function (list) {
 						if (list.d) { list = list.d; }
+						if (list.result) { list = list.result; }
 						e.LookupList(list);
 					});
 				});
@@ -1254,13 +1273,13 @@ var reportViewModel = function (options) {
 			if (hasFields == null || forcedFiltersByTable.length == 0) return;
 			for (var i = 0; i < forcedFiltersByTable.length; i++) {
 				var tblField = forcedFiltersByTable[i];
-				var match = _.find(self.SelectedFields(), function (x) { return x.fieldId == tblField.fieldId;})
+				var match = _.find(self.SelectedFields(), function (x) { return x.fieldId == tblField.fieldId; })
 				if (!match) {
 					tblField.disabled(true);
 					self.SelectedFields.push(tblField);
 				}
-            }
-        }
+			}
+		}
 	});
 
 	self.loadTableFields = function (table) {
@@ -1275,6 +1294,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (fields) {
 			if (fields.d) { fields = fields.d; }
+			if (fields.result) { fields = fields.result; }
 			var flds = _.map(fields, function (e, i) {
 				var match = _.filter(self.SelectedFields(), function (x) { return x.fieldId == e.fieldId; });
 				if (match.length > 0) {
@@ -1290,7 +1310,7 @@ var reportViewModel = function (options) {
 			self.selectedTableFields = flds;
 		});
 
-    }
+	}
 
 	self.SelectedTable.subscribe(function (table) {
 		self.SelectedProc(null);
@@ -1392,7 +1412,7 @@ var reportViewModel = function (options) {
 			hasForeignKey: false,
 			fieldFilter: ["=", "<>", ">=", ">", "<", "<="],
 			formulaItems: self.formulaFields(),
-			forceFilterForTable: false 
+			forceFilterForTable: false
 		};
 	};
 
@@ -1418,7 +1438,7 @@ var reportViewModel = function (options) {
 			return;
 		}
 
-		if (!self.validateReport()) {
+		if (!self.validateReport(true)) {
 			toastr.error("Please correct validation issues");
 			return;
 		}
@@ -1601,14 +1621,17 @@ var reportViewModel = function (options) {
 		var selectedTable = self.SelectedTable();
 		var fieldTable = _.find(self.Tables(), { tableName: field.tableName });
 
-		if (field.isFormulaField() || (selectedTable != null && fieldTable.tableId == selectedTable.tableId))
+		if (field.isFormulaField() || (selectedTable != null && fieldTable.tableId == selectedTable.tableId) || fieldTable == null) {
 			self.SelectedFields.remove(field);
+			self.RemoveInvalidFilters(self.FilterGroups());
+		}
 		else {
 			self.loadTableFields(fieldTable).done(function () {
 				self.ChooseFields([]);
 				self.SelectedFields.remove(field);
+				self.RemoveInvalidFilters(self.FilterGroups());
 			});
-        }
+		}
 	};
 
 	self.RemoveSeries = function (series) {
@@ -1622,6 +1645,17 @@ var reportViewModel = function (options) {
 	self.SaveWithoutRun = function () {
 		self.RunReport(true);
 	};
+
+	self.RemoveInvalidFilters = function (filtergroup) {
+		_.forEach(filtergroup, function (g) {
+			_.forEach(g.Filters(), function (x, i) {
+				if (x && !x.Field()) {
+					g.RemoveFilter(x);
+				}
+				if (i == 0) self.RemoveInvalidFilters(g.FilterGroups());
+			});
+		});
+	}
 
 	self.BuildFilterData = function (filtergroup) {
 
@@ -1853,6 +1887,7 @@ var reportViewModel = function (options) {
 				async: false
 			}).done(function (result) {
 				if (result.d) { result = result.d; }
+				if (result.result) { result = result.result; }
 				_result = result;
 				self.AllSqlQuries(self.AllSqlQuries() + (result.sql + ","));
 
@@ -1928,11 +1963,12 @@ var reportViewModel = function (options) {
 				pageSize: self.pager.pageSize(),
 				sortBy: self.pager.sortColumn() || '',
 				desc: self.pager.sortDescending() || false,
-				ReportSeries: reportSeries
+				reportSeries: reportSeries
 			})
 		}).done(function (result) {
 
 			if (result.d) { result = result.d; }
+			if (result.result) { result = result.result; }
 			var reportResult = self.ReportResult();
 			reportResult.HasError(result.HasError);
 			reportResult.Exception(result.Exception);
@@ -1941,8 +1977,10 @@ var reportViewModel = function (options) {
 			reportResult.ReportSql(result.ReportSql);
 			self.ReportSeries = reportSeries;
 
-			function matchColumnName(src, dst) {
+			function matchColumnName(src, dst, dbSrc, dbDst) {
 				if (src == dst) return true;
+				if (dbSrc && dbDst && dbSrc == dbDst) return true;
+
 				if (dst.indexOf('(Count)') < 0 && dst.indexOf("(Avg)") < 0 && dst.indexOf("(Sum)") < 0 && dst.indexOf("(Average)") < 0)
 					return false;
 
@@ -1968,7 +2006,7 @@ var reportViewModel = function (options) {
 						e.hideStoredProcColumn = (col ? col.disabled() : true);
 					}
 					else
-						col = _.find(self.SelectedFields(), function (x) { return matchColumnName(x.fieldName, e.ColumnName); });
+						col = _.find(self.SelectedFields(), function (x) { return matchColumnName(x.fieldName, e.ColumnName, x.dbField, e.SqlField); });
 					if (col && col.linkField()) {
 						e.linkItem = col.linkFieldItem.toJs();
 						e.linkField = true;
@@ -2074,10 +2112,11 @@ var reportViewModel = function (options) {
 							pageSize: e.pager.pageSize(),
 							sortBy: e.pager.sortColumn() || '',
 							desc: e.pager.sortDescending() || false,
-							ReportSeries: reportSeries
+							reportSeries: reportSeries
 						})
 					}).done(function (ddData) {
 						if (ddData.d) { ddData = ddData.d; }
+						if (ddData.result) { ddData = ddData.result; }
 						ddData.ReportData.IsDrillDown = ko.observable(true);
 
 						processCols(ddData.ReportData.Columns);
@@ -2105,6 +2144,7 @@ var reportViewModel = function (options) {
 						})
 					}).done(function (ddResult) {
 						if (ddResult.d) { ddResult = ddResult.d; }
+						if (ddResult.result) { ddResult = ddResult.result; }
 						e.sql = ddResult.sql;
 						e.connectKey = ddResult.connectKey;
 						self.expandSqls.push({ index: index, sql: e.sql });
@@ -2124,6 +2164,18 @@ var reportViewModel = function (options) {
 				e.toggle = function () {
 					if (e.isExpanded()) e.collapse(); else e.expand();
 				};
+
+				e.exportExcel = function () {
+					self.downloadExport("/DotNetReport/DownloadExcel", {
+						reportSql: e.sql,
+						connectKey: self.currentConnectKey(),
+						reportName: 'Sub Report for ' + self.ReportName(),
+						allExpanded: false,
+						expandSqls: '',
+						columnDetails: self.getColumnDetails(),
+						includeSubTotals: false
+					}, 'xlsx');
+                }
 
 				if (self.useStoredProc()) {
 					e.Items = _.filter(e.Items, function (x) { return _.includes(validFieldNames, x.Column.SqlField); });
@@ -2161,6 +2213,7 @@ var reportViewModel = function (options) {
 					})
 				}).done(function (subtotalsqlResult) {
 					if (subtotalsqlResult.d) { subtotalsqlResult = subtotalsqlResult.d; }
+					if (subtotalsqlResult.result) { subtotalsqlResult = subtotalsqlResult.result; }
 					ajaxcall({
 						url: options.execReportUrl,
 						type: "POST",
@@ -2172,10 +2225,11 @@ var reportViewModel = function (options) {
 							pageSize: 1,
 							sortBy: '',
 							desc: false,
-							ReportSeries: null
+							reportSeries: null
 						})
 					}).done(function (subtotalResult) {
 						if (subtotalResult.d) { subtotalResult = subtotalResult.d; }
+						if (subtotalResult.result) { subtotalResult = subtotalResult.result }
 
 						processCols(subtotalResult.ReportData.Columns);
 						_.forEach(subtotalResult.ReportData.Rows, function (dr) {
@@ -2346,6 +2400,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (folders) {
 			if (folders.d) { folders = folders.d; }
+			if (folders.result) { folders = folders.result; }
 			self.Folders(folders);
 			self.SelectedFolder(null);
 			if (folderId) {
@@ -2607,6 +2662,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (report) {
 			if (report.d) { report = report.d; }
+			if (report.result) { report = report.result; }
 			self.useStoredProc(report.UseStoredProc);
 			self.ReportType(report.ReportType);
 
@@ -2650,6 +2706,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (reports) {
 			if (reports.d) { reports = reports.d; }
+			if (reports.result) { reports = reports.result; }
 			_.forEach(reports, function (e) {
 				e.runMode = false;
 				e.openReport = function () {
@@ -2719,6 +2776,7 @@ var reportViewModel = function (options) {
 				}
 			}).done(function (x) {
 				if (x.d) { x = x.d; }
+				if (x.result) { x = x.result; }
 				x = x || {
 					allowUsersToCreateReports: true,
 					allowUsersToManageFolders: true
@@ -2761,9 +2819,9 @@ var reportViewModel = function (options) {
 		return true;
 	};
 
-	self.validateReport = function () {
+	self.validateReport = function (validateCustomOnly) {
 		if (options.reportWizard == null) return;
-		var curInputs = options.reportWizard.find("input,select"),
+		var curInputs = options.reportWizard.find(validateCustomOnly === true ? "#custom-field-design input, #custom-field-design select" : "input, select"),
 			isValid = true;
 
 		$(".needs-validation").removeClass("was-validated");
@@ -2798,6 +2856,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (procs) {
 			if (procs.d) { procs = procs.d; }
+			if (procs.result) { procs = procs.result; }
 			self.Procs(procs);
 		});
 	};
@@ -2814,6 +2873,7 @@ var reportViewModel = function (options) {
 			}
 		}).done(function (tables) {
 			if (tables.d) { tables = tables.d; }
+			if (tables.result) { tables = tables.result; }
 			self.Tables(tables);
 		});
 	};
@@ -2889,6 +2949,90 @@ var reportViewModel = function (options) {
 			thItem = undefined;
 		});
 	}
+
+	self.downloadExport = function (url, data, ext) {
+		if ($.blockUI) {
+			$.blockUI({ baseZ: 500 });
+		}
+
+		$.ajax({
+			type: 'POST',
+			url: (options.runExportUrl || '') + url,
+			xhrFields: {
+				responseType: 'blob'
+			},
+			data: data,
+			success: function (data) {
+				var a = document.createElement('a');
+				var url = window.URL.createObjectURL(data);
+				a.href = url;
+				a.download = self.ReportName() + '.' + ext;
+				document.body.append(a);
+				a.click();
+				a.remove();
+				window.URL.revokeObjectURL(url);
+				if ($.unblockUI) {
+					$.unblockUI();
+				}
+			},
+			error: function () {
+				if ($.unblockUI) {
+					$.unblockUI();
+				}
+				toastr.error("Error downloading file");
+            }
+		});
+    }
+
+	self.downloadPdfAlt = function () {
+		self.downloadExport("/DotNetReport/DownloadPdf", {
+			reportSql: self.currentSql(),
+			connectKey: self.currentConnectKey(),
+			reportName: self.ReportName(),
+			chartData: self.ChartData(),
+			columnDetails: self.getColumnDetails()
+		}, 'pdf');
+	}
+
+	self.downloadPdf = function () {
+		self.downloadExport("/DotNetReport/DownloadPdf", {
+			reportId: self.ReportID(),
+			reportSql: self.currentSql(),
+			connectKey: self.currentConnectKey(),
+			reportName: self.ReportName(),
+			expandAll: self.allExpanded(),
+			printUrl: options.printReportUrl
+		}, 'pdf');
+	}
+
+	self.downloadExcel = function () {
+		self.downloadExport("/DotNetReport/DownloadExcel", {
+			reportSql: self.currentSql(),
+			connectKey: self.currentConnectKey(),
+			reportName: self.ReportName(),
+			allExpanded: self.allExpanded(),
+			expandSqls: self.getExpandSqls() || '',
+			columnDetails: self.getColumnDetails(),
+			includeSubTotals: self.IncludeSubTotal()
+		}, 'xlsx');
+	}
+
+	self.downloadCsv = function () {
+		self.downloadExport("/DotNetReport/DownloadCsv", {
+			reportSql: self.currentSql(),
+			connectKey: self.currentConnectKey(),
+			reportName: self.ReportName()
+		}, 'csv');
+	}
+
+	self.downloadXml = function () {
+		self.downloadExport("/DotNetReport/DownloadXml", {
+			reportSql: self.currentSql(),
+			connectKey: self.currentConnectKey(),
+			reportName: self.ReportName()
+		}, 'xml');
+	}
+
 };
 
 var dashboardViewModel = function (options) {
@@ -2995,6 +3139,7 @@ var dashboardViewModel = function (options) {
 			}
 		}).done(function (result) {
 			if (result.d) { result = result.d; }
+			if (result.result) { result = result.result; }
 			toastr.success("Dashboard saved successfully");
 			setTimeout(function () {
 				window.location = window.location.href.split("?")[0] + "?id=" + result.id;
@@ -3118,6 +3263,8 @@ var dashboardViewModel = function (options) {
 			var setup = [];
 			if (allFolders[0].d) { allFolders[0] = allFolders[0].d; }
 			if (allReports[0].d) { allReports[0] = allReports[0].d; }
+			if (allFolders[0].result) { allFolders[0] = allFolders[0].result; }
+			if (allReports[0].result) { allReports[0] = allReports[0].result; }
 
 			_.forEach(allFolders[0], function (x) {
 				var folderReports = _.filter(allReports[0], { folderId: x.Id });
