@@ -23,16 +23,7 @@ function ajaxcall(options) {
         headers: options.headers || {},
         async: options.async === false ? options.async : true,
         beforeSend: function (x) {
-            if (abp) {
-                let token = abp.auth.getToken();
-                if (token) {
-                    x.setRequestHeader('Authorization', 'Bearer ' + token);
-                }
-                if (options.type == "POST") {
-                    x.setRequestHeader(abp.security.antiForgery.tokenHeaderName, abp.security.antiForgery.getToken())
-                }
-            }
-            else if (token && !options.url.startsWith("https://dotnetreport.com")) {
+            if (token && !options.url.startsWith("https://dotnetreport.com")) {
                 x.setRequestHeader("Authorization", "Bearer " + token);
             }
         }

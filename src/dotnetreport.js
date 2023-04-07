@@ -1235,6 +1235,7 @@ var reportViewModel = function (options) {
 	});
 
 	self.createNewReport = function () {
+		$('#modal-reportbuilder').modal('show');
 		self.clearReport();
 		self.ReportMode("generate");
 	};
@@ -3158,6 +3159,7 @@ var reportViewModel = function (options) {
 							self.ReportMode("generate");
 						}
 						else {
+							$('#modal-reportbuilder').modal('show');
 							self.SaveReport(false);
 							self.RunReport(false, true);
 							e.runMode = false;
