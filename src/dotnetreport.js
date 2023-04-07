@@ -1235,9 +1235,11 @@ var reportViewModel = function (options) {
 	});
 
 	self.createNewReport = function () {
-		$('#modal-reportbuilder').modal('show');
 		self.clearReport();
 		self.ReportMode("generate");
+		setTimeout(function() {
+			$('#modal-reportbuilder').modal('show');
+		}, 100);
 	};
 
 	self.ReportType.subscribe(function (newvalue) {
@@ -3168,7 +3170,8 @@ var reportViewModel = function (options) {
 				};
 
 				e.copyReport = function () {
-					e.openReport().done(function () {
+					e.openReport().done(function () {						
+						$('#modal-reportbuilder').modal('show');
 						self.ReportID(0);
 						self.ReportName('Copy of ' + self.ReportName());
 						self.CanEdit(true);
@@ -3544,7 +3547,7 @@ var dashboardViewModel = function (options) {
 		});
 	};
 
-	self.editDashboard = function () {
+	self.editDashboard = function () {		
 		self.dashboard.Id(self.currentDashboard().id);
 		self.dashboard.Name(self.currentDashboard().name);
 		self.dashboard.Description(self.currentDashboard().description);

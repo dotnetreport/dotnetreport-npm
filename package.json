@@ -1,6 +1,6 @@
 {
   "name": "dotnetreport",
-  "version": "5.0.4-beta.1",
+  "version": "5.0.4",
   "description": "module that contains all scripts needed for dotnetreport",
   "main": "dotnetreport.min.js",
   "scripts": {
@@ -52,6 +52,9 @@
     "src/dotnetreport-helper.js",
     "src/dotnetreport-setup.js",
     "src/dotnetreport.css",
+    "src/lib/gridstack.min.js",
+    "src/lib/gridstack.jQueryUI.min.js",
+    "src/lib/gridstack.min.css",
     "dotnetreport.min.js"
   ]
 }
